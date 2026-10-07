@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Aplikasi Sekolah Pintar</title>
+  <style>
+/* ===== Variabel warna (terang & gelap) ===== */
+:root {
+  --bg: #f4f6fb; --card: #fff; --tx: #1d2433; --mu: #5d6679;
+  --ac: #2f6fed; --bd: #e1e5ee;
+  --ok: #1f9d55; --warn: #d9822b; --bad: #d64545;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151c; --card: #1b2030; --tx: #eef1f8; --mu: #a1a9bc; --ac: #6b9bff; --bd: #2b3247;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151c; --card: #1b2030; --tx: #eef1f8; --mu: #a1a9bc; --ac: #6b9bff; --bd: #2b3247;
+}
+
+/* ===== Dasar ===== */
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--tx); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5; }
+h1 { margin: 0; font-size: 1.2rem; }
+h2 { margin: 0 0 10px; font-size: 1.1rem; }
+.mu { color: var(--mu); font-size: .85rem; }
+.done { text-decoration: line-through; opacity: .5; }
+
+/* ===== Header & navigasi ===== */
+header { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--ac); color: #fff; padding: 14px 16px; }
+header span { font-size: .85rem; margin-right: 6px; }
+nav { display: flex; gap: 6px; overflow-x: auto; padding: 10px 12px; background: var(--card); border-bottom: 1px solid var(--bd); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+nav button { white-space: nowrap; padding: 8px 14px; border: 0; border-radius: 20px; background: transparent; color: var(--mu); font-weight: 600; font-size: .9rem; }
+nav button.on { background: var(--ac); color: #fff; }
+
+/* ===== Tata letak ===== */
+main { max-width: 640px; margin: 0 auto; padding: 14px; }
+.tab { display: none; }
+.tab.on { display: block; }
+.card { background: var(--card); border: 1px solid var(--bd); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.row { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--bd); }
+.row:last-child { border: 0; }
+
+/* ===== Form & tombol ===== */
+input, select { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid var(--bd); border-radius: 10px; background: var(--bg); color: var(--tx); font-size: 1rem; }
+.b { background: var(--ac); color: #fff; border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 600; font-size: .95rem; }
+.full { width: 100%; }
+.s { background: var(--bg); color: var(--tx); border: 1px solid var(--bd); border-radius: 8px; padding: 4px 10px; font-size: 1rem; }
+.s.light { background: rgba(255,255,255,.2); color: #fff; border-color: transparent; font-size: .85rem; }
+.seg { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+.seg button { flex: 1; padding: 6px 4px; border: 1px solid var(--bd); border-radius: 8px; background: var(--bg); color: var(--tx); font-size: .85rem; }
+.seg button.on { background: var(--ac); color: #fff; border-color: var(--ac); }
+
+/* ===== Komponen kecil ===== */
+.tag { display: inline-block; padding: 2px 8px; border-radius: 10px; color: #fff; font-size: .75rem; font-weight: 600; }
+.alert { background: var(--warn); color: #fff; border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; font-weight: 600; }
+.msg { min-height: 1.2em; margin: 0 0 8px; color: var(--bad); font-size: .85rem; }
+
+/* ===== Halaman login ===== */
+#auth { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.auth-box { width: 100%; max-width: 380px; }
+.auth-box h1 { text-align: center; margin-bottom: 14px; color: var(--ac); }
+
+/* ===== Kotak login berlatar senja pegunungan (CSS gradient) ===== */
+#auth { background: var(--bg); }
+.auth-box {
+  position: relative; overflow: hidden; border: 0; color: #fff;
+  background:
+    radial-gradient(circle at 50% 42%, #fff1b8 0, #ffc15a 8%, rgba(255,160,60,.55) 22%, transparent 48%),
+    linear-gradient(to bottom, #6b6270 0%, #c98a5a 38%, #e9a54c 50%, #5a3a22 62%, #2a1a10 82%, #140c07 100%);
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+.auth-box h1, .auth-box .msg { color: #fff; }
+.auth-box .msg { color: #ffd2d2; }
+.auth-box input { background: rgba(255,255,255,.92); color: #1d2433; border-color: transparent; }
+.auth-box input::placeholder { color: #5d6679; }
+.auth-box .seg button { background: rgba(255,255,255,.2); color: #fff; border-color: rgba(255,255,255,.35); }
+.auth-box .seg button.on { background: #fff; color: #1d2433; border-color: #fff; }
+</style>
+</head>
+<body>
+  <noscript><p style="padding:16px">Aktifkan JavaScript untuk memakai aplikasi ini.</p></noscript>
+
+  <!-- ===== HALAMAN LOGIN / DAFTAR ===== -->
+  <section id="auth">
+    <div class="auth-box card">
+      <h1>🏫 Masukan nama!</h1>
+      <div class="seg">
+        <button id="tabLogin" class="on" onclick="UI.authMode('login')">Masuk</button>
+        <button id="tabRegister" onclick="UI.authMode('register')">Daftar</button>
+      </div>
+      <input id="aName" placeholder="Nama lengkap" hidden>
+      <input id="aUser" placeholder="Username" autocomplete="username">
+      <input id="aPass" type="password" placeholder="Password (min. 6 karakter)" autocomplete="current-password">
+      <p id="aMsg" class="msg"></p>
+      <button class="b full" onclick="UI.submitAuth()">Lanjut</button>
+    </div>
+  </section>
+
+  <!-- ===== APLIKASI UTAMA ===== -->
+  <div id="app" hidden>
+    <header>
+      <h1>🏫 ASTS</h1>
+      <div><span id="hello"></span> <button class="s light" onclick="UI.logout()">Keluar</button></div>
+    </header>
+    <nav id="nav"></nav>
+
+    <main>
+      <!-- Kantin -->
+      <div class="tab" id="t0">
+        <div class="card">
+          <h2>🍜 Pesan Makanan Kantin</h2>
+          <p class="mu">Pesan dari kelas, ambil saat siap. Tidak perlu antre!</p>
+          <div id="menu"></div>
+        </div>
+        <div class="card">
+          <h2>Keranjang</h2>
+          <div id="cart" class="mu"></div>
+          <button class="b full" onclick="Kantin.order()">Pesan Sekarang</button>
+        </div>
+        <div class="card">
+          <h2>Antrean Pesanan</h2>
+          <p class="mu">Ketuk status untuk memajukan (simulasi penjual).</p>
+          <div id="orders"></div>
+        </div>
+      </div>
+
+      <!-- Tugas -->
+      <div class="tab" id="t1">
+        <div id="remind"></div>
+        <div class="card">
+          <h2>⏰ Pengingat Tugas</h2>
+          <input id="tn" placeholder="Nama tugas (mis. Matematika hal. 45)">
+          <input id="td" type="date">
+          <button class="b full" onclick="Tugas.add()">Tambah Tugas</button>
+        </div>
+        <div class="card" id="tasks"></div>
+      </div>
+
+      <!-- Jadwal -->
+      <div class="tab" id="t2">
+        <div class="card">
+          <h2>📅 Jadwal Pelajaran</h2>
+          <select id="jh"></select>
+          <input id="jm" placeholder="Mata pelajaran">
+          <input id="jw" type="time">
+          <button class="b full" onclick="Jadwal.add()">Tambah Jadwal</button>
+        </div>
+        <div class="card" id="jadwal"></div>
+      </div>
+
+      <!-- Absensi -->
+      <div class="tab" id="t3">
+        <div class="card">
+          <h2>✅ Absensi Siswa</h2>
+          <p class="mu" id="tgl"></p>
+          <input id="an" placeholder="Nama siswa">
+          <button class="b full" onclick="Absensi.add()">Tambah Siswa</button>
+        </div>
+        <div class="card">
+          <input id="cari" placeholder="🔍 Cari siswa" oninput="Absensi.render()">
+          <div id="rekap" class="mu"></div>
+        </div>
+        <div class="card" id="absen"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+/* ===== Autentikasi (login & daftar) =====
+   Catatan: ini login sisi-browser untuk keperluan tugas/demo.
+   Data akun disimpan di localStorage perangkat ini, bukan di server. */
+const Auth = (() => {
+  const KEY_USERS = 'sp_users';
+  const KEY_SESSION = 'sp_session';
+
+    /**
+     * @param {any} key
+     * @param {any} fallback
+     */
+    const read = (key, fallback) => {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+    catch { return fallback; }
+  };
+    /**
+     * @param {any} key
+     * @param {any} value
+     */
+    const write = (key, value) => {
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch { return false; }
+  };
+
+  // Hash password (SHA-256; cadangan sederhana bila crypto tidak tersedia)
+  /**
+   * @param {any} text
+   */
+  async function hash(text) {
+    try {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch {
+      let h = 5381;
+      for (const c of text) h = ((h << 5) + h + c.charCodeAt(0)) >>> 0;
+      return 'x' + h;
+    }
+  }
+
+  /**
+   * @param {any} name
+   * @param {any} username
+   * @param {any} password
+   */
+  async function register(name, username, password) {
+    username = username.trim().toLowerCase();
+    if (!name.trim()) return { ok: false, msg: 'Nama lengkap wajib diisi.' };
+    if (!/^[a-z0-9_]{3,20}$/.test(username)) return { ok: false, msg: 'Username 3-20 karakter (huruf, angka, _).' };
+    if (password.length < 6) return { ok: false, msg: 'Password minimal 6 karakter.' };
+
+    const users = read(KEY_USERS, {});
+    if (users[username]) return { ok: false, msg: 'Username sudah dipakai.' };
+
+    users[username] = { name: name.trim(), pass: await hash(username + ':' + password) };
+    if (!write(KEY_USERS, users)) return { ok: false, msg: 'Gagal menyimpan akun (penyimpanan browser diblokir).' };
+    write(KEY_SESSION, { username });
+    return { ok: true };
+  }
+
+  /**
+   * @param {any} username
+   * @param {any} password
+   */
+  async function login(username, password) {
+    username = username.trim().toLowerCase();
+    const user = read(KEY_USERS, {})[username];
+    if (!user || user.pass !== await hash(username + ':' + password)) {
+      return { ok: false, msg: 'Username atau password salah.' };
+    }
+    write(KEY_SESSION, { username });
+    return { ok: true };
+  }
+
+  function current() {
+    const s = read(KEY_SESSION, null);
+    const user = s && read(KEY_USERS, {})[s.username];
+    return user ? { username: s.username, name: user.name } : null;
+  }
+
+  function logout() { write(KEY_SESSION, null); }
+
+  return { register, login, current, logout };
+})();
+
+/* ===== Utilitas ===== */
+/** @param {any} id */
+const $ = id => document.getElementById(id);
+/**
+ * @param {any} n
+ */
+const rupiah = n => 'Rp' + n.toLocaleString('id-ID');
+const today = () => new Date().toISOString().slice(0, 10);
+/**
+ * @param {any} s
+ */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+/**
+ * @param {any} t
+ */
+const emptyText = t => `<span class="mu">${t}</span>`;
+
+/* Penyimpanan data per pengguna (tiap akun punya data sendiri) */
+/** @type {any} */
+const Store = {
+  user: null,
+  /**
+   * @param {any} k
+   */
+  key(k) { return `sp:${this.user}:${k}`; },
+  /**
+   * @param {any} k
+   * @param {any} fallback
+   */
+  get(k, fallback) {
+    try { const v = localStorage.getItem(this.key(k)); return v ? JSON.parse(v) : fallback; }
+    catch { return fallback; }
+  },
+  /**
+   * @param {any} k
+   * @param {any} v
+   */
+  set(k, v) { try { localStorage.setItem(this.key(k), JSON.stringify(v)); } catch {} }
+};
+
+/* ===== Modul: Kantin ===== */
+/** @type {any} */
+const Kantin = {
+  menu: [['Nasi Goreng', 12000], ['Mie Ayam', 10000], ['Bakso', 10000], ['Gorengan', 2000], ['Es Teh', 3000], ['Air Mineral', 3000]],
+  status: ['Diproses', 'Siap diambil', 'Selesai'],
+  warna: ['var(--warn)', 'var(--ok)', 'var(--mu)'],
+  jumlah: [],
+  orders: [],
+
+  init() {
+    this.jumlah = this.menu.map(() => 0);
+    this.orders = Store.get('orders', []);
+    this.render();
+  },
+  ringkasan() {
+    const items = this.menu.map((/** @type {any} */ m, /** @type {any} */ i) => this.jumlah[i] ? `${this.jumlah[i]}× ${m[0]}` : '').filter(Boolean);
+    const total = this.menu.reduce((/** @type {any} */ s, /** @type {any} */ m, /** @type {any} */ i) => s + m[1] * this.jumlah[i], 0);
+    return { items, total };
+  },
+  /**
+   * @param {any} i
+   * @param {any} d
+   */
+  qty(i, d) { this.jumlah[i] = Math.max(0, this.jumlah[i] + d); this.render(); },
+  order() {
+    const { items, total } = this.ringkasan();
+    if (!items.length) return alert('Pilih menu dulu');
+    const no = this.orders.length ? Math.max(...this.orders.map(/** @type {any} */ (/** @type {any} */ o) => o.no)) + 1 : 1;
+    this.orders.push({ no, nama: Store.userName, items: items.join(', '), total, st: 0 });
+    Store.set('orders', this.orders);
+    this.jumlah = this.menu.map(() => 0);
+    this.render();
+  },
+  /**
+   * @param {any} no
+   */
+  maju(no) {
+    const o = this.orders.find(/** @type {any} */ (/** @type {any} */ x) => x.no === no);
+    o.st = (o.st + 1) % 3;
+    Store.set('orders', this.orders);
+    this.render();
+  },
+  render() {
+    $('menu').innerHTML = this.menu.map((/** @type {any} */ m, /** @type {any} */ i) => `
+      <div class="row">
+        <div>${m[0]}<div class="mu">${rupiah(m[1])}</div></div>
+        <div><button class="s" onclick="Kantin.qty(${i},-1)">−</button> <b>${this.jumlah[i]}</b> <button class="s" onclick="Kantin.qty(${i},1)">+</button></div>
+      </div>`).join('');
+
+    const { items, total } = this.ringkasan();
+    $('cart').innerHTML = items.length ? `${items.join(', ')}<br><b style="color:var(--tx)">Total: ${rupiah(total)}</b>` : 'Belum ada pesanan';
+
+    $('orders').innerHTML = this.orders.length
+      ? this.orders.slice().reverse().map(/** @type {any} */ (/** @type {any} */ o) => `
+        <div class="row">
+          <div><b>#${o.no} ${esc(o.nama)}</b><div class="mu">${esc(o.items)} · ${rupiah(o.total)}</div></div>
+          <span class="tag" style="background:${this.warna[o.st]};cursor:pointer" onclick="Kantin.maju(${o.no})">${this.status[o.st]}</span>
+        </div>`).join('')
+      : emptyText('Belum ada pesanan');
+  }
+};
+
+/* ===== Modul: Tugas ===== */
+/** @type {any} */
+const Tugas = {
+  list: [],
+
+  init() { this.list = Store.get('tasks', []); $('td').value = today(); this.render(); },
+  /**
+   * @param {any} tgl
+   */
+  selisih(tgl) { return Math.round((new Date(tgl + 'T00:00:00') - new Date(today() + 'T00:00:00')) / 864e5); },
+  save() { Store.set('tasks', this.list); this.render(); },
+  add() {
+    const n = $('tn').value.trim(), d = $('td').value;
+    if (!n || !d) return alert('Isi nama tugas dan batas waktu');
+    this.list.push({ id: Date.now(), n, d, ok: false });
+    $('tn').value = '';
+    this.save();
+  },
+  /**
+   * @param {any} id
+   */
+  toggle(id) { const t = this.list.find(/** @type {any} */ (/** @type {any} */ x) => x.id === id); t.ok = !t.ok; this.save(); },
+  /**
+   * @param {any} id
+   */
+  remove(id) { this.list = this.list.filter(/** @type {any} */ (/** @type {any} */ x) => x.id !== id); this.save(); },
+  render() {
+    const sorted = this.list.slice().sort((/** @type {any} */ a, /** @type {any} */ b) => a.ok - b.ok || a.d.localeCompare(b.d));
+
+    $('remind').innerHTML = sorted.filter(/** @type {any} */ (/** @type {any} */ t) => !t.ok && this.selisih(t.d) <= 1).map(/** @type {any} */ (/** @type {any} */ t) => {
+      const x = this.selisih(t.d);
+      const teks = x < 0 ? `sudah lewat ${-x} hari!` : x === 0 ? 'dikumpulkan HARI INI' : 'dikumpulkan BESOK';
+      return `<div class="alert">🔔 ${esc(t.n)} — ${teks}</div>`;
+    }).join('');
+
+    $('tasks').innerHTML = sorted.length ? sorted.map(/** @type {any} */ (/** @type {any} */ t) => {
+      const x = this.selisih(t.d);
+      const warna = t.ok ? 'var(--ok)' : x < 0 ? 'var(--bad)' : x <= 1 ? 'var(--warn)' : 'var(--ac)';
+      const label = t.ok ? 'Selesai' : x < 0 ? 'Terlambat' : x === 0 ? 'Hari ini' : x + ' hari lagi';
+      return `
+        <div class="row">
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="checkbox" style="width:20px;margin:0" ${t.ok ? 'checked' : ''} onchange="Tugas.toggle(${t.id})">
+            <div class="${t.ok ? 'done' : ''}">${esc(t.n)}<div class="mu">${t.d}</div></div>
+          </div>
+          <div><span class="tag" style="background:${warna}">${label}</span> <button class="s" onclick="Tugas.remove(${t.id})">🗑</button></div>
+        </div>`;
+    }).join('') : emptyText('Belum ada tugas');
+  }
+};
+
+/* ===== Modul: Jadwal ===== */
+/** @type {any} */
+const Jadwal = {
+  hari: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
+  list: [],
+
+  init() {
+    this.list = Store.get('jadwal', []);
+    $('jh').innerHTML = this.hari.map(/** @type {any} */ (/** @type {any} */ h) => `<option>${h}</option>`).join('');
+    this.render();
+  },
+  save() { Store.set('jadwal', this.list); this.render(); },
+  add() {
+    const m = $('jm').value.trim(), w = $('jw').value;
+    if (!m || !w) return alert('Isi mapel dan jam');
+    this.list.push({ id: Date.now(), h: $('jh').value, m, w });
+    $('jm').value = '';
+    this.save();
+  },
+  /**
+   * @param {any} id
+   */
+  remove(id) { this.list = this.list.filter(/** @type {any} */ (/** @type {any} */ x) => x.id !== id); this.save(); },
+  render() {
+    const html = this.hari.map(/** @type {any} */ (/** @type {any} */ h) => {
+      const rows = this.list.filter(/** @type {any} */ (/** @type {any} */ x) => x.h === h).sort((/** @type {any} */ a, /** @type {any} */ b) => a.w.localeCompare(b.w));
+      if (!rows.length) return '';
+      return `<h2>${h}</h2>` + rows.map(/** @type {any} */ (/** @type {any} */ x) => `
+        <div class="row"><div><b>${x.w}</b> · ${esc(x.m)}</div><button class="s" onclick="Jadwal.remove(${x.id})">🗑</button></div>`).join('');
+    }).join('');
+    $('jadwal').innerHTML = html || emptyText('Belum ada jadwal');
+  }
+};
+
+/* ===== Modul: Absensi ===== */
+/** @type {any} */
+const Absensi = {
+  opsi: ['Hadir', 'Izin', 'Sakit', 'Alpa'],
+  siswa: [],
+  data: {},
+
+  init() {
+    this.siswa = Store.get('siswa', []);
+    this.data = Store.get('absen', {});
+    $('tgl').textContent = 'Tanggal: ' + new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    this.render();
+  },
+  add() {
+    const n = $('an').value.trim();
+    if (!n) return;
+    this.siswa.push({ id: Date.now(), n });
+    Store.set('siswa', this.siswa);
+    $('an').value = '';
+    this.render();
+  },
+  /**
+   * @param {any} id
+   */
+  remove(id) { this.siswa = this.siswa.filter(/** @type {any} */ (/** @type {any} */ x) => x.id !== id); Store.set('siswa', this.siswa); this.render(); },
+  /**
+   * @param {any} id
+   * @param {any} status
+   */
+  tandai(id, status) {
+    const k = today();
+    this.data[k] = this.data[k] || {};
+    this.data[k][id] = status;
+    Store.set('absen', this.data);
+    this.render();
+  },
+  render() {
+    const hariIni = this.data[today()] || {};
+    const kata = $('cari').value.toLowerCase();
+
+    $('rekap').textContent = this.siswa.length
+      ? this.opsi.map(/** @type {any} */ (/** @type {any} */ o) => `${o}: ${this.siswa.filter(/** @type {any} */ (/** @type {any} */ s) => hariIni[s.id] === o).length}`).join(' · ') + ` · Belum: ${this.siswa.filter(/** @type {any} */ (/** @type {any} */ s) => !hariIni[s.id]).length}`
+      : '';
+
+    const tampil = this.siswa.filter(/** @type {any} */ (/** @type {any} */ s) => s.n.toLowerCase().includes(kata));
+    $('absen').innerHTML = tampil.length ? tampil.map(/** @type {any} */ (/** @type {any} */ s) => `
+      <div style="padding:8px 0;border-bottom:1px solid var(--bd)">
+        <div class="row" style="border:0;padding:0 0 6px"><b>${esc(s.n)}</b><button class="s" onclick="Absensi.remove(${s.id})">🗑</button></div>
+        <div class="seg">${this.opsi.map(/** @type {any} */ (/** @type {any} */ o) => `<button class="${hariIni[s.id] === o ? 'on' : ''}" onclick="Absensi.tandai(${s.id},'${o}')">${o}</button>`).join('')}</div>
+      </div>`).join('') : emptyText('Belum ada siswa');
+  }
+};
+
+/* ===== Antarmuka: tab, login, logout ===== */
+/** @type {any} */
+const UI = {
+  mode: 'login',
+  tabs: ['🍜 Kantin', '⏰ Tugas', '📅 Jadwal', '✅ Absensi'],
+
+  /**
+   * @param {any} i
+   */
+  tab(i) {
+    document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('on', i === j));
+    document.querySelectorAll('nav button').forEach((b, j) => b.classList.toggle('on', i === j));
+  },
+  /**
+   * @param {any} mode
+   */
+  authMode(mode) {
+    this.mode = mode;
+    $('tabLogin').classList.toggle('on', mode === 'login');
+    $('tabRegister').classList.toggle('on', mode === 'register');
+    $('aName').hidden = mode === 'login';
+    $('aMsg').textContent = '';
+  },
+  async submitAuth() {
+    const user = $('aUser').value, pass = $('aPass').value;
+    const res = this.mode === 'login'
+      ? await Auth.login(user, pass)
+      : await Auth.register($('aName').value, user, pass);
+    if (!res.ok) { $('aMsg').textContent = res.msg; return; }
+    $('aPass').value = '';
+    this.start();
+  },
+  logout() { Auth.logout(); this.start(); },
+
+  /* Tampilkan login atau aplikasi, tergantung status sesi */
+  start() {
+    const me = Auth.current();
+    $('auth').hidden = !!me;
+    $('app').hidden = !me;
+    if (!me) { this.authMode('login'); return; }
+
+    Store.user = me.username;
+    Store.userName = me.name;
+    $('hello').textContent = 'Halo, ' + me.name.split(' ')[0];
+    [Kantin, Tugas, Jadwal, Absensi].forEach(m => m.init());
+    this.tab(0);
+  }
+};
+
+$('nav').innerHTML = UI.tabs.map((/** @type {any} */ n, /** @type {any} */ i) => `<button onclick="UI.tab(${i})">${n}</button>`).join('');
+UI.start();
+
+</script>
+</body>
+</html>
